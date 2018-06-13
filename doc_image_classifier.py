@@ -95,7 +95,7 @@ if __name__ == '__main__':
     y_val = np.ones(len(X_val)) * utils.IMAGE
     y_val[:len(X_doc_val)] = utils.DOCUMENT
 
-    classifier = DocImageClassifier(MODEL_PATH)
+    classifier = DocImageClassifier(False)
     #train_gen = utils.image_gen(X_train, y_train, True)
     #val_gen = utils.image_gen(X_val, y_val, True)
     #classifier.fit(train_gen, len(X_train), val_gen, len(X_val))
