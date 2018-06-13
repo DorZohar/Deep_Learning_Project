@@ -4,18 +4,18 @@ import numpy as np
 import os
 
 
-BATCH_SIZE = 100
+BATCH_SIZE = 1
 EPOCHS = 10
-INITIAL_LR = 0.05
+INITIAL_LR = 0.1
 MODEL_PATH = 'doc_img_classifier.h5'
 
 
 def lr_rate(epoch):
 
-    return INITIAL_LR*(0.8 ** epoch)
+    return INITIAL_LR*(0.9 ** epoch)
 
 
-class DocImageClassifier:
+class TilePosRegressor:
 
     def __init__(self, load_model=False):
         if not load_model:
@@ -26,18 +26,20 @@ class DocImageClassifier:
     @staticmethod
     def build_model():
 
-        model = keras.models.Sequential()
+        input_layer = keras.layers.Input(shape=(None, None, 1))
+        conv1_layer = keras.layers.Conv2D(16, 3, activation='relu', padding='same')(input_layer)
+        conv2_layer = keras.layers.Conv2D(32, 3, activation='relu', padding='same')(conv1_layer)
+        conv3_layer = keras.layers.Conv2D(64, 3, activation='relu', padding='same')(conv2_layer)
+        pooling_layer = keras.layers.GlobalAveragePooling2D()(conv3_layer)
+        dense = keras.layers.Dense(128, activation='relu')(pooling_layer)
 
-        model.add(keras.layers.Conv2D(16, 3, activation='relu', padding='same', input_shape=(None, None, 1)))
-        model.add(keras.layers.Conv2D(32, 3, activation='relu', padding='same'))
-        model.add(keras.layers.Conv2D(64, 3, activation='relu', padding='same'))
-        model.add(keras.layers.GlobalAveragePooling2D())
-        #model.add(keras.layers.Dense(32, activation='relu'))
-        model.add(keras.layers.Dense(1, activation='sigmoid'))
+        output_x = keras.layers.Dense(1, activation='sigmoid')(dense)
+        output_y = keras.layers.Dense(1, activation='sigmoid')(dense)
+
+        model = keras.models.Model(input_layer, [output_x, output_y])
 
         model.compile(keras.optimizers.SGD(lr=INITIAL_LR, momentum=0.9),
-                      loss='binary_crossentropy',
-                      metrics=['accuracy'],
+                      loss='mean_squared_error',
                       )
 
         model.summary()
@@ -79,28 +81,12 @@ class DocImageClassifier:
 
 if __name__ == '__main__':
 
-    X_doc_train, X_doc_test, X_doc_val = utils.split_train_test_val(utils.DOC_PATH, 0.7, 0.15)
-    X_img_train, X_img_test, X_img_val = utils.split_train_test_val(utils.IMG_PATH, 0.7, 0.15)
+    X_img_train, X_img_test, X_img_val = utils.split_train_test_val(utils.IMG_PATH, 0.7, 0.15, seed=42)
 
-    X_train = X_doc_train + X_img_train
-    X_test = X_doc_test + X_img_test
-    X_val = X_doc_val + X_img_val
-
-    y_train = np.ones(len(X_train)) * utils.IMAGE
-    y_train[:len(X_doc_train)] = utils.DOCUMENT
-
-    y_test = np.ones(len(X_test)) * utils.IMAGE
-    y_test[:len(X_doc_test)] = utils.DOCUMENT
-
-    y_val = np.ones(len(X_val)) * utils.IMAGE
-    y_val[:len(X_doc_val)] = utils.DOCUMENT
-
-    classifier = DocImageClassifier(MODEL_PATH)
-    #train_gen = utils.image_gen(X_train, y_train, True)
-    #val_gen = utils.image_gen(X_val, y_val, True)
-    #classifier.fit(train_gen, len(X_train), val_gen, len(X_val))
-
-    print("Test accuracy on %d examples: %f" % (len(X_test), classifier.evaluate(X_test, y_test)))
+    classifier = TilePosRegressor()
+    train_gen = utils.centers_gen(X_img_train)
+    val_gen = utils.centers_gen(X_img_val)
+    classifier.fit(train_gen, len(X_img_train), val_gen, len(X_img_val))
 
 
 
