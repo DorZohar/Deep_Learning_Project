@@ -27,10 +27,11 @@ class TilePosRegressor:
     def build_model():
 
         input_layer = keras.layers.Input(shape=(None, None, 1))
-        conv1_layer = keras.layers.Conv2D(16, 3, activation='relu', padding='same')(input_layer)
+        conv1_layer = keras.layers.Conv2D(16, 5, activation='relu', padding='same')(input_layer)
         conv2_layer = keras.layers.Conv2D(32, 3, activation='relu', padding='same')(conv1_layer)
         conv3_layer = keras.layers.Conv2D(64, 3, activation='relu', padding='same')(conv2_layer)
-        pooling_layer = keras.layers.GlobalAveragePooling2D()(conv3_layer)
+        conv4_layer = keras.layers.Conv2D(64, 3, activation='relu', padding='same')(conv3_layer)
+        pooling_layer = keras.layers.GlobalAveragePooling2D()(conv4_layer)
         dense = keras.layers.Dense(128, activation='relu')(pooling_layer)
 
         output_x = keras.layers.Dense(1, activation='sigmoid')(dense)

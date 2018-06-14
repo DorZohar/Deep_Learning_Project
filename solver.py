@@ -8,6 +8,9 @@ import matplotlib.pyplot as plt
 from scipy.optimize import linear_sum_assignment
 
 
+EPS = 0.00000000001
+
+
 def get_inference_log_prob(labels, left_right_probs, up_down_probs, k):
     labels = labels.flatten()
     left_right_pairs = [(i, i + 1) for i in range(0, len(labels)) if (i + 1) % k != 0]
@@ -15,10 +18,10 @@ def get_inference_log_prob(labels, left_right_probs, up_down_probs, k):
 
     log_prob = 0.0
     for left, right in left_right_pairs:
-        log_prob += np.log(left_right_probs[(labels[left], labels[right])])
+        log_prob += np.log(left_right_probs[(labels[left], labels[right])] + EPS)
 
     for up, down in up_down_pairs:
-        log_prob += np.log(up_down_probs[(labels[up], labels[down])])
+        log_prob += np.log(up_down_probs[(labels[up], labels[down])] + EPS)
 
     return log_prob
 
@@ -29,13 +32,13 @@ def infer(left_right_probs, up_down_probs, k):
     best_log_prob = float('-inf')
 
     for i in range(1, k*k + 1):
-        left_right_probs[(0, i)] = 1.0
-        up_down_probs[(0, i)] = 1.0
+        left_right_probs[(0, i)] = np.product([(1 - left_right_probs[j, i]) for j in range(1, k*k + 1) if i != j])
+        up_down_probs[(0, i)] = np.product([(1 - up_down_probs[j, i]) for j in range(1, k*k + 1) if i != j])
 
     for p in range(1, k*k + 1):
         labels = np.zeros((k, k), dtype=np.int32)
         labels[0][0] = p
-        total_log_prob = 0.0
+        #total_log_prob = 0.0
         available = set(range(1, k*k + 1))
         available.remove(p)
         for i in range(k):
@@ -52,14 +55,18 @@ def infer(left_right_probs, up_down_probs, k):
                         best_piece = piece
                 labels[i][j] = best_piece
                 available.remove(best_piece)
-                total_log_prob += np.log(up_down_probs[(labels[i - 1][j], piece)]) + \
-                                  np.log(left_right_probs[(labels[i][j - 1], piece)])
-        #log_prob = get_inference_log_prob(labels, left_right_probs, up_down_probs, k)
-        if total_log_prob > best_log_prob:
-            best_log_prob = total_log_prob
+                # total_log_prob += np.log(up_down_probs[(labels[i - 1][j], piece)]) + \
+                #                   np.log(left_right_probs[(labels[i][j - 1], piece)])
+        log_prob = get_inference_log_prob(labels, left_right_probs, up_down_probs, k)
+        if log_prob > best_log_prob:
+            best_log_prob = log_prob
             best_labels = labels
 
     return list(best_labels.flatten())
+
+
+def infer2(left_right_probs, up_down_probs, k):
+    pass
 
 
 def dist(p1, p2):

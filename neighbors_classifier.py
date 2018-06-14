@@ -52,12 +52,12 @@ class NeighborsClassifier:
         model = keras.models.Sequential()
 
         model.add(keras.layers.Conv2D(8, (5, 5), padding='same', activation='relu', input_shape=(None, utils.STRIP_SIZE * 2, 1)))
-        #model.add(keras.layers.Conv2D(32, (5, 5), padding='same', activation='relu'))
-        #model.add(keras.layers.Conv2D(64, 5, activation='relu', padding='same'))
+        model.add(keras.layers.Conv2D(8, (3, 3), padding='same', activation='relu'))
+        model.add(keras.layers.Conv2D(8, (3, 3), padding='same', activation='relu'))
         model.add(SemiGlobalAvgPooling())
         model.add(keras.layers.Flatten())
-        model.add(keras.layers.Dense(16, activation='relu'))
-        model.add(keras.layers.Dropout(0.5))
+        model.add(keras.layers.Dense(8, activation='relu'))
+        #model.add(keras.layers.Dropout(0.5))
         model.add(keras.layers.Dense(1, activation='sigmoid'))
 
         model.compile(keras.optimizers.SGD(lr=INITIAL_LR, momentum=0.9),
@@ -81,13 +81,24 @@ class NeighborsClassifier:
         self.model.save(self.model_path)
 
     def evaluate(self, paths):
-        labels = np.asarray(labels)
-        predictions = self.predict(paths)
-        res = (predictions == labels)
-        for i in range(res.shape[0]):
-            if res[i] == 0.0:
-                print(paths[i])
-        return np.mean(predictions == labels)
+        total = 0
+        score = 0.0
+        for path in paths:
+            images = utils.get_images_from_path(path, not self.is_docs, resize=None)
+            tiles = np.sqrt(images.shape[0])
+            tile_pairs = utils.tile_neighbors_lr[tiles] if not self.is_docs \
+                        else utils.tile_neighbors_ud[tiles]
+            non_neighbor_pairs = utils.non_neighbor_tiles_lr[tiles] if not self.is_docs \
+                                 else utils.non_neighbor_tiles_ud[tiles]
+            total += len(tile_pairs) + len(non_neighbor_pairs)
+            for i1, i2 in tile_pairs:
+                pred = self.predict(images[i1], images[i2])
+                score += (pred > 0.5)
+            for i1, i2 in non_neighbor_pairs:
+                pred = self.predict(images[i1], images[i2])
+                score += (pred < 0.5)
+
+        return score / total
 
     def predict(self, im1, im2):
         #im1 = utils.process_image(im1, None)
@@ -105,10 +116,14 @@ if __name__ == '__main__':
     #X_doc_train, X_doc_test, X_doc_val = utils.split_train_test_val(utils.DOC_PATH, 0.7, 0.15)
     X_img_train, X_img_test, X_img_val = utils.split_train_test_val(utils.IMG_PATH, 0.7, 0.15, seed=42)
 
-    classifier = NeighborsClassifier(is_docs=False, is_left_right=True)
-    train_gen = utils.neighbors_gen(X_img_train, utils.STRIP_SIZE, is_left_right=True)
-    val_gen = utils.neighbors_gen(X_img_val, utils.STRIP_SIZE, is_left_right=True)
-    classifier.fit(train_gen, len(X_img_train), val_gen, len(X_img_val))
+    if True:
+        classifier = NeighborsClassifier(is_docs=False, is_left_right=True)
+        train_gen = utils.neighbors_gen(X_img_train, utils.STRIP_SIZE, is_left_right=True)
+        val_gen = utils.neighbors_gen(X_img_val, utils.STRIP_SIZE, is_left_right=True)
+        classifier.fit(train_gen, len(X_img_train), val_gen, len(X_img_val))
+    else:
+        classifier = NeighborsClassifier(is_docs=False, is_left_right=True, load_model=True)
+        print(classifier.evaluate(X_img_test))
 
     #print("Test accuracy on %d examples: %f" % (len(X_img_test), classifier.evaluate(X_img_test)))
 

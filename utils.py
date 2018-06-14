@@ -12,7 +12,7 @@ IMAGE = 0
 DOCUMENT = 1
 DOC_PATH = 'documents//'
 IMG_PATH = 'images//'
-STRIP_SIZE = 10
+STRIP_SIZE = 5
 IMG_MEAN = 0.403474
 IMG_STD = 0.255687
 DOC_MEAN = 0.946252
@@ -83,7 +83,8 @@ def process_image(image, is_img=True, resize=None):
 
 
 def get_images_from_path(path, is_img=True, resize=None, process=True):
-    files = os.listdir(path)
+    files = sorted(os.listdir(path), key=lambda x: int(x.split('.')[0]))
+
     images = []
     for f in files:
         im = cv2.imread(path + f)
