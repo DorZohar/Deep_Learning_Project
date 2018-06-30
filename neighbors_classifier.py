@@ -72,12 +72,10 @@ class NeighborsClassifier:
     def build_model():
 
         model = keras.models.Sequential()
-        # print(utils.STRIP_SIZE * 2)
         model.add(keras.layers.Conv2D(8, (5, 5), padding='same', activation='relu',
                                       input_shape=(None, utils.STRIP_SIZE * 2, 1)))
         model.add(keras.layers.Conv2D(8, (3, 3), padding='same', activation='relu'))
         model.add(keras.layers.Conv2D(8, (3, 3), padding='same', activation='relu'))
-        # model.add(keras.layers.GlobalAveragePooling2D())
         model.add(SemiGlobalAvgPooling())
         model.add(keras.layers.Flatten())
         model.add(keras.layers.Dense(8, activation='relu'))

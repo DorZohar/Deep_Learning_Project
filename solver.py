@@ -900,7 +900,7 @@ class Solver:
         up_down_probs = dict()
         k = {4: 2, 16: 4, 25: 5}[len(images)]
 
-        # is_doc = np.round(self.doc_image_classifier.predict(images)) == utils.DOCUMENT
+        is_doc = np.round(self.doc_image_classifier.predict(images)) == utils.DOCUMENT
         is_doc = False
         lr_classifier = self.doc_lr_neighbors_classifier if is_doc else self.img_lr_neighbors_classifier
         ud_classifier = self.doc_ud_neighbors_classifier if is_doc else self.img_ud_neighbors_classifier
