@@ -956,7 +956,7 @@ if __name__ == '__main__':
 
         # process image & predict if it's an image or doc
         images = utils.process_images(images)
-        is_image = np.round(solver.doc_image_classifier.predict(images)) == utils.IMAGE
+        is_image = True #np.round(solver.doc_image_classifier.predict(images)) == utils.IMAGE
         images = utils.normalize_images(images, is_img=is_image)
         for i, label in enumerate(labels, 0):
             new_labels[label] = i
