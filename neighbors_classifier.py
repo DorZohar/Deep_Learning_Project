@@ -13,7 +13,7 @@ MODEL_PATH = '{}_{}_neighbors_classifier.h5'
 def lr_rate(epoch):
     lr = 0.1
     lr_points = [3, 8]
-    
+
     for r in lr_points:
         lr *= 0.1 ** int(epoch >= r)
 
@@ -50,7 +50,8 @@ class NeighborsClassifier:
         if not load_model:
             self.model = self.build_model()
         else:
-            self.model = keras.models.load_model(self.model_path, custom_objects=SemiGlobalAvgPooling)
+            self.model = keras.models.load_model(self.model_path,
+                                                 custom_objects={'SemiGlobalAvgPooling': SemiGlobalAvgPooling})
 
     @staticmethod
     def build_densenet():
@@ -62,7 +63,7 @@ class NeighborsClassifier:
                          include_top=True, weights=None, input_tensor=None,
                          classes=1, activation='sigmoid')
         model.compile(keras.optimizers.SGD(lr=0.1, momentum=0.9),
-                      loss='binary_crossentropy', # TODO
+                      loss='binary_crossentropy',  # TODO
                       metrics=['accuracy'],
                       )
         model.summary()
