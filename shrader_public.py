@@ -6,8 +6,8 @@ Xa = []
 Xb = []
 y = []
 
-IM_DIR = os.path.join(os.path.dirname(__file__), 'document_source')
-OUTPUT_DIR = "documents"
+IM_DIR = os.path.join(os.path.dirname(__file__), 'images_source')
+OUTPUT_DIR = "images"
 files = os.listdir(IM_DIR)
 
 # update this number for 4X4 crop 2X2 or 5X5 crops.
