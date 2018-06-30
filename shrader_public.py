@@ -6,7 +6,7 @@ Xa = []
 Xb = []
 y = []
 
-IM_DIR = os.path.join(os.path.dirname(__file__), 'documents_source')
+IM_DIR = os.path.join(os.path.dirname(__file__), 'document_source')
 OUTPUT_DIR = "documents"
 files = os.listdir(IM_DIR)
 
