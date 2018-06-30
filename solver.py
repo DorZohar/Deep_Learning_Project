@@ -936,7 +936,7 @@ class Solver:
 
 
 if __name__ == '__main__':
-    X_img_train, X_img_test, X_img_val = utils.split_train_test_val(utils.IMG_PATH, 0.7, 0.15, seed=42)
+    X_img_train, X_img_test, X_img_val = utils.split_train_test_val(utils.DOC_PATH, 0.7, 0.15, seed=42)
     solver = Solver()
 
     error_prob = utils.AverageMeter()
