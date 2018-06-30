@@ -926,12 +926,11 @@ class Solver:
         predictions = [x - 1 for x in predictions]
         return predictions
 
+    def evaluate(self, images, labels, is_img):
+        predictions, log_prob = self.predict(images, is_img)
+        acc = np.mean(np.asarray(predictions) == np.asarray(labels))
 
-def evaluate(self, images, labels, is_img):
-    predictions, log_prob = self.predict(images, is_img)
-    acc = np.mean(np.asarray(predictions) == np.asarray(labels))
-
-    return acc, predictions, log_prob
+        return acc, predictions, log_prob
 
 
 if __name__ == '__main__':
