@@ -922,21 +922,20 @@ class Solver:
         return infer_by_pos(predictions, k)
 
     def predict(self, images, is_img):
-        if self.is_regression:
-            return self.predict_regression(images)
-        else:
-            return self.predict_neigbors(images, is_img)
+        predictions, log_prob = self.predict_neigbors(images, is_img)
+        predictions = [x - 1 for x in predictions]
+        return predictions
 
-    def evaluate(self, images, labels, is_img):
 
-        predictions, log_prob = self.predict(images, is_img)
-        acc = np.mean(np.asarray(predictions) == np.asarray(labels))
+def evaluate(self, images, labels, is_img):
+    predictions, log_prob = self.predict(images, is_img)
+    acc = np.mean(np.asarray(predictions) == np.asarray(labels))
 
-        return acc, predictions, log_prob
+    return acc, predictions, log_prob
 
 
 if __name__ == '__main__':
-    X_img_train, X_img_test, X_img_val = utils.split_train_test_val(utils.DOC_PATH, 0.7, 0.15, seed=42)
+    X_img_train, X_img_test, X_img_val = utils.split_train_test_val(utils.IMG_PATH, 0.7, 0.15, seed=42)
     solver = Solver()
 
     error_prob = utils.AverageMeter()
@@ -952,16 +951,16 @@ if __name__ == '__main__':
         images = list(utils.get_images_from_path(path))
         tiles = len(images)
         count += tiles
-        labels = list(range(1, tiles + 1))
+        labels = list(range(0, tiles))
         images, labels = shuffle(images, labels)
-        new_labels = list(range(1, tiles + 1))
+        new_labels = list(range(0, tiles))
 
         # process image & predict if it's an image or doc
         images = utils.process_images(images)
         is_image = np.round(solver.doc_image_classifier.predict(images)) == utils.IMAGE
         images = utils.normalize_images(images, is_img=is_image)
-        for i, label in enumerate(labels, 1):
-            new_labels[label - 1] = i
+        for i, label in enumerate(labels, 0):
+            new_labels[label] = i
         labels = new_labels
         acc, predictions, log_prob = solver.evaluate(images, labels, is_image)
         if acc < 1:
