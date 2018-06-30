@@ -901,7 +901,7 @@ class Solver:
         k = {4: 2, 16: 4, 25: 5}[len(images)]
 
         is_doc = np.round(self.doc_image_classifier.predict(images)) == utils.DOCUMENT
-        is_doc = False
+        is_doc = True
         lr_classifier = self.doc_lr_neighbors_classifier if is_doc else self.img_lr_neighbors_classifier
         ud_classifier = self.doc_ud_neighbors_classifier if is_doc else self.img_ud_neighbors_classifier
 
@@ -936,7 +936,7 @@ class Solver:
 
 
 if __name__ == '__main__':
-    X_img_train, X_img_test, X_img_val = utils.split_train_test_val(utils.IMG_PATH, 0.7, 0.15, seed=42)
+    X_img_train, X_img_test, X_img_val = utils.split_train_test_val(utils.DOC_PATH, 0.7, 0.15, seed=42)
     solver = Solver()
 
     error_prob = utils.AverageMeter()
@@ -949,7 +949,7 @@ if __name__ == '__main__':
     sum_16 = utils.AverageMeter()
     sum_25 = utils.AverageMeter()
     for idx, path in enumerate(X_img_test):
-        images = list(utils.get_images_from_path(path, is_img=True))
+        images = list(utils.get_images_from_path(path, is_img=False))
         tiles = len(images)
         count += tiles
         labels = list(range(1, tiles + 1))
