@@ -4,7 +4,7 @@ from tile_pos_regressor import TilePosRegressor
 import numpy as np
 import utils
 from sklearn.utils import shuffle
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from scipy.optimize import linear_sum_assignment
 from itertools import permutations
 import operator
@@ -28,21 +28,21 @@ def get_inference_log_prob(labels, left_right_probs, up_down_probs, k):
     return log_prob
 
 
-def plot_img(images, id1, id2, vertical=False):
-    rows = images[id1 - 1].shape[0]
-    cols = images[id1 - 1].shape[1]
-    if vertical is False:
-        comb = np.zeros((rows, 2 * cols))
-        comb[:, :cols] = np.squeeze(images[id1 - 1])
-        comb[:, cols:] = np.squeeze(images[id2 - 1])
-    else:
-        comb = np.zeros((2 * rows, cols))
-        comb[:rows, :] = np.squeeze(images[id1 - 1])
-        comb[rows:, :] = np.squeeze(images[id2 - 1])
-    plt.imshow(comb, cmap='gray')
-    plt.xticks([]), plt.yticks([])  # to hide tick values on X and Y axis
-    plt.title('image')
-    plt.show()
+# def plot_img(images, id1, id2, vertical=False):
+#     rows = images[id1 - 1].shape[0]
+#     cols = images[id1 - 1].shape[1]
+#     if vertical is False:
+#         comb = np.zeros((rows, 2 * cols))
+#         comb[:, :cols] = np.squeeze(images[id1 - 1])
+#         comb[:, cols:] = np.squeeze(images[id2 - 1])
+#     else:
+#         comb = np.zeros((2 * rows, cols))
+#         comb[:rows, :] = np.squeeze(images[id1 - 1])
+#         comb[rows:, :] = np.squeeze(images[id2 - 1])
+#     plt.imshow(comb, cmap='gray')
+#     plt.xticks([]), plt.yticks([])  # to hide tick values on X and Y axis
+#     plt.title('image')
+#     plt.show()
 
 
 def greedy_top_left(left_right_probs, up_down_probs, k, images):

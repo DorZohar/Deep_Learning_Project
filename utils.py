@@ -5,7 +5,7 @@ import cv2
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 IMAGE = 0
 DOCUMENT = 1
