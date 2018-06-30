@@ -7,7 +7,7 @@ Xb = []
 y = []
 
 IM_DIR = os.path.join(os.path.dirname(__file__), 'documents_source')
-OUTPUT_DIR = "documents\\"
+OUTPUT_DIR = "documents"
 files = os.listdir(IM_DIR)
 
 # update this number for 4X4 crop 2X2 or 5X5 crops.
@@ -23,10 +23,11 @@ for f in files:
         frac_h = height // tiles_per_dim
         frac_w = width // tiles_per_dim
         i = 0
-        path = OUTPUT_DIR + f[:-4] + "_{}\\".format(tiles_per_dim)
+        path = os.path.join(OUTPUT_DIR, f[:-4], '_{}'.format(tiles_per_dim))
+        # path = OUTPUT_DIR + f[:-4] + "_{}\\".format(tiles_per_dim)
         os.makedirs(path)
         for h in range(tiles_per_dim):
             for w in range(tiles_per_dim):
                 crop = im[h * frac_h:(h + 1) * frac_h, w * frac_w:(w + 1) * frac_w]
-                cv2.imwrite(path + "{}.jpg".format(i), crop)
+                cv2.imwrite(os.path.join(path, '{}.jpg'.format(i)), crop)
                 i = i + 1

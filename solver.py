@@ -895,13 +895,13 @@ class Solver:
 
         self.tile_pos_regression = TilePosRegressor(load_model=True)
 
-    def predict_neigbors(self, images, images_for_classification):
+    def predict_neigbors(self, images, is_img):
         left_right_probs = dict()
         up_down_probs = dict()
         k = {4: 2, 16: 4, 25: 5}[len(images)]
 
-        is_doc = np.round(self.doc_image_classifier.predict(images_for_classification)) == utils.DOCUMENT
-        is_doc = True
+        # is_doc = np.round(self.doc_image_classifier.predict(images_for_classification)) == utils.DOCUMENT
+        is_doc = not is_img
         lr_classifier = self.doc_lr_neighbors_classifier if is_doc else self.img_lr_neighbors_classifier
         ud_classifier = self.doc_ud_neighbors_classifier if is_doc else self.img_ud_neighbors_classifier
 
@@ -921,22 +921,22 @@ class Solver:
 
         return infer_by_pos(predictions, k)
 
-    def predict(self, images, images_for_classification):
+    def predict(self, images, is_img):
         if self.is_regression:
             return self.predict_regression(images)
         else:
-            return self.predict_neigbors(images, images_for_classification)
+            return self.predict_neigbors(images, is_img)
 
-    def evaluate(self, images, images_for_classification, labels):
+    def evaluate(self, images, labels, is_img):
 
-        predictions, log_prob = self.predict(images, images_for_classification)
+        predictions, log_prob = self.predict(images, is_img)
         acc = np.mean(np.asarray(predictions) == np.asarray(labels))
 
         return acc, predictions, log_prob
 
 
 if __name__ == '__main__':
-    X_img_train, X_img_test, X_img_val = utils.split_train_test_val(utils.DOC_PATH, 0.7, 0.15, seed=42)
+    X_img_train, X_img_test, X_img_val = utils.split_train_test_val(utils.IMG_PATH, 0.7, 0.15, seed=42)
     solver = Solver()
 
     error_prob = utils.AverageMeter()
@@ -949,18 +949,21 @@ if __name__ == '__main__':
     sum_16 = utils.AverageMeter()
     sum_25 = utils.AverageMeter()
     for idx, path in enumerate(X_img_test):
-        images = list(utils.get_images_from_path(path, is_img=False))
-        images_for_classification = list(utils.get_images_from_path_v2(path, is_img=False))
-
+        images = list(utils.get_images_from_path(path))
         tiles = len(images)
         count += tiles
         labels = list(range(1, tiles + 1))
         images, labels = shuffle(images, labels)
         new_labels = list(range(1, tiles + 1))
+
+        # process image & predict if it's an image or doc
+        images = utils.process_images(images)
+        is_image = np.round(solver.doc_image_classifier.predict(images)) == utils.IMAGE
+        images = utils.normalize_images(images, is_img=is_image)
         for i, label in enumerate(labels, 1):
             new_labels[label - 1] = i
         labels = new_labels
-        acc, predictions, log_prob = solver.evaluate(images, images_for_classification, labels)
+        acc, predictions, log_prob = solver.evaluate(images, labels, is_image)
         if acc < 1:
             error_counter += 1
             error_prob.update(log_prob)
