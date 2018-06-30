@@ -5,6 +5,7 @@ import cv2
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 import numpy as np
+
 # import matplotlib.pyplot as plt
 
 IMAGE = 0
@@ -85,6 +86,21 @@ def process_image(image, is_img=True, resize=None):
     return image
 
 
+def process_image_v2(image, is_img=True, resize=None):
+    # image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY) TODO niv code change
+    if resize is not None:
+        image = cv2.resize(image, resize)
+    image = image / 255.0
+    # if is_img:
+    #     image = (image - IMG_MEAN) / IMG_STD
+    # else:
+    #     image = (image - DOC_MEAN) / DOC_STD
+
+    image = np.expand_dims(image, -1)
+
+    return image
+
+
 def get_images_from_path(path, is_img=True, resize=None, process=True):
     files = sorted(os.listdir(path), key=lambda x: int(x.split('.')[0]))
 
@@ -93,6 +109,19 @@ def get_images_from_path(path, is_img=True, resize=None, process=True):
         im = cv2.imread(path + f, cv2.IMREAD_GRAYSCALE)
         if process:
             im = process_image(im, is_img, resize)
+        images.append(im)
+
+    return np.asarray(images)
+
+
+def get_images_from_path_v2(path, is_img=True, resize=None, process=True):
+    files = sorted(os.listdir(path), key=lambda x: int(x.split('.')[0]))
+
+    images = []
+    for f in files:
+        im = cv2.imread(path + f, cv2.IMREAD_GRAYSCALE)
+        if process:
+            im = process_image_v2(im, is_img, resize)
         images.append(im)
 
     return np.asarray(images)

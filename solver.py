@@ -895,12 +895,12 @@ class Solver:
 
         self.tile_pos_regression = TilePosRegressor(load_model=True)
 
-    def predict_neigbors(self, images):
+    def predict_neigbors(self, images, images_for_classification):
         left_right_probs = dict()
         up_down_probs = dict()
         k = {4: 2, 16: 4, 25: 5}[len(images)]
 
-        is_doc = np.round(self.doc_image_classifier.predict(images)) == utils.DOCUMENT
+        is_doc = np.round(self.doc_image_classifier.predict(images_for_classification)) == utils.DOCUMENT
         is_doc = True
         lr_classifier = self.doc_lr_neighbors_classifier if is_doc else self.img_lr_neighbors_classifier
         ud_classifier = self.doc_ud_neighbors_classifier if is_doc else self.img_ud_neighbors_classifier
@@ -921,15 +921,15 @@ class Solver:
 
         return infer_by_pos(predictions, k)
 
-    def predict(self, images):
+    def predict(self, images, images_for_classification):
         if self.is_regression:
             return self.predict_regression(images)
         else:
-            return self.predict_neigbors(images)
+            return self.predict_neigbors(images, images_for_classification)
 
-    def evaluate(self, images, labels):
+    def evaluate(self, images, images_for_classification, labels):
 
-        predictions, log_prob = self.predict(images)
+        predictions, log_prob = self.predict(images, images_for_classification)
         acc = np.mean(np.asarray(predictions) == np.asarray(labels))
 
         return acc, predictions, log_prob
@@ -950,6 +950,8 @@ if __name__ == '__main__':
     sum_25 = utils.AverageMeter()
     for idx, path in enumerate(X_img_test):
         images = list(utils.get_images_from_path(path, is_img=False))
+        images_for_classification = list(utils.get_images_from_path_v2(path, is_img=False))
+
         tiles = len(images)
         count += tiles
         labels = list(range(1, tiles + 1))
@@ -958,7 +960,7 @@ if __name__ == '__main__':
         for i, label in enumerate(labels, 1):
             new_labels[label - 1] = i
         labels = new_labels
-        acc, predictions, log_prob = solver.evaluate(images, labels)
+        acc, predictions, log_prob = solver.evaluate(images, images_for_classification, labels)
         if acc < 1:
             error_counter += 1
             error_prob.update(log_prob)
