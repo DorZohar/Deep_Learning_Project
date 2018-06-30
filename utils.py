@@ -91,8 +91,8 @@ def normalize_images(images, is_img=True):
     return n_images
 
 
-def get_images_from_path(path):
-    files = sorted(os.listdir(path), key=lambda x: int(x.split('.')[0]))
+def get_images_from_path(path, resize=None):
+    files = sorted(os.listdir(path), key=lambda x: int(x.split('.')[0].replace('_','')))
     images = []
     for f in files:
         im = cv2.imread(path + f)
@@ -150,7 +150,7 @@ def split_train_test_val(path, train_size=0.7, test_size=0.15, seed=42):
 
     files = os.listdir(path)
 
-    files = [path + file + '//' for file in files]
+    files = [path + file + '//_2//' for file in files] + [path + file + '//_4//' for file in files] + [path + file + '//_5//' for file in files]
 
     train_files, other_files = train_test_split(files, train_size=train_size, random_state=seed)
     test_files, val_files = train_test_split(other_files, train_size=(test_size / (1 - train_size)), random_state=seed)
@@ -190,8 +190,12 @@ def neighbors_gen(paths, pixels, is_left_right=True, is_img=True, randomize=Fals
 
     while True:
         for path in paths:
-            images = get_images_from_path(path, is_img, resize=None)
+            images = get_images_from_path(path)
+            #images = process_images(images)
+            images = normalize_images(images, is_img)
+            images = np.asarray(images)
             images, labels = get_image_neighbors(images, is_left_right, pixels=pixels)
+            images = np.expand_dims(images, -1)
             yield images, labels
 
 

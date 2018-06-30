@@ -84,7 +84,7 @@ class NeighborsClassifier:
         model.add(keras.layers.Dense(1, activation='sigmoid'))
 
         model.compile(keras.optimizers.SGD(lr=INITIAL_LR, momentum=0.9),
-                      loss='mean_squared_error',
+                      loss='binary_crossentropy',
                       metrics=['accuracy'],
                       )
 
@@ -107,7 +107,10 @@ class NeighborsClassifier:
         total = 0
         score = 0.0
         for path in paths:
-            images = utils.get_images_from_path(path, not self.is_docs, resize=None)
+            images = utils.get_images_from_path(path)
+            images = utils.process_images(images)
+            images = utils.normalize_images(images, not self.is_docs)
+            images = np.asarray(images)
             tiles = np.sqrt(images.shape[0])
             tile_pairs = utils.tile_neighbors_lr[tiles] if not self.is_docs \
                 else utils.tile_neighbors_ud[tiles]
