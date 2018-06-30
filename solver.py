@@ -927,10 +927,10 @@ class Solver:
         return predictions
 
     def evaluate(self, images, labels, is_img):
-        predictions, log_prob = self.predict(images, is_img)
+        predictions = self.predict(images, is_img)
         acc = np.mean(np.asarray(predictions) == np.asarray(labels))
 
-        return acc, predictions, log_prob
+        return acc, predictions
 
 
 if __name__ == '__main__':
@@ -961,12 +961,9 @@ if __name__ == '__main__':
         for i, label in enumerate(labels, 0):
             new_labels[label] = i
         labels = new_labels
-        acc, predictions, log_prob = solver.evaluate(images, labels, is_image)
+        acc, predictions = solver.evaluate(images, labels, is_image)
         if acc < 1:
             error_counter += 1
-            error_prob.update(log_prob)
-        else:
-            corre_prob.update(log_prob)
         sum += acc * tiles
         if tiles == 4:
             sum_4.update(acc)
