@@ -7,12 +7,11 @@ from sklearn.utils import shuffle
 import numpy as np
 import matplotlib.pyplot as plt
 
-
 IMAGE = 0
 DOCUMENT = 1
 DOC_PATH = 'documents//'
 IMG_PATH = 'images//'
-STRIP_SIZE = 5
+STRIP_SIZE = 10
 IMG_MEAN = 0.403474
 IMG_STD = 0.255687
 DOC_MEAN = 0.946252
@@ -33,11 +32,12 @@ def calc_rel_pixel_center(idx, tiles):
 
 tile_rel_center = {tiles: [calc_rel_pixel_center(i, tiles) for i in range(1, tiles ** 2 + 1)] for tiles in [2, 4, 5]}
 
-tile_neighbors_lr = {tiles: set([(i, i+1) for i in range(0, tiles ** 2) if (i + 1) % tiles != 0]) for tiles in [2, 4, 5]}
+tile_neighbors_lr = {tiles: set([(i, i + 1) for i in range(0, tiles ** 2) if (i + 1) % tiles != 0]) for tiles in
+                     [2, 4, 5]}
 tile_neighbors_ud = {tiles: set([(i, i + tiles) for i in range(0, tiles ** 2 - tiles)]) for tiles in [2, 4, 5]}
 
-all_tiles = {tiles: set([(i, j) for i in range(tiles ** 2) for j in range(tiles ** 2) if i != j]) for tiles in [2, 4, 5]}
-
+all_tiles = {tiles: set([(i, j) for i in range(tiles ** 2) for j in range(tiles ** 2) if i != j]) for tiles in
+             [2, 4, 5]}
 
 non_neighbor_tiles_lr = {tiles: list(all_tiles[tiles].difference(tile_neighbors_lr[tiles])) for tiles in [2, 4, 5]}
 non_neighbor_tiles_ud = {tiles: list(all_tiles[tiles].difference(tile_neighbors_ud[tiles])) for tiles in [2, 4, 5]}
@@ -47,6 +47,7 @@ class threadsafe_iter:
     """Takes an iterator/generator and makes it thread-safe by
     serializing call to the `next` method of given iterator/generator.
     """
+
     def __init__(self, it):
         self.it = it
         self.lock = threading.Lock()
@@ -62,13 +63,15 @@ class threadsafe_iter:
 def threadsafe_generator(f):
     """A decorator that takes a generator function and makes it thread-safe.
     """
+
     def g(*a, **kw):
         return threadsafe_iter(f(*a, **kw))
+
     return g
 
 
 def process_image(image, is_img=True, resize=None):
-    image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+    # image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY) TODO niv code change
     if resize is not None:
         image = cv2.resize(image, resize)
     image = image / 255.0
@@ -87,7 +90,7 @@ def get_images_from_path(path, is_img=True, resize=None, process=True):
 
     images = []
     for f in files:
-        im = cv2.imread(path + f)
+        im = cv2.imread(path + f, cv2.IMREAD_GRAYSCALE)
         if process:
             im = process_image(im, is_img, resize)
         images.append(im)
@@ -106,13 +109,13 @@ def create_images_strip(im1, im2, is_left_right, pixels):
     return new_image
 
 
-def get_image_neighbors(images, is_left_right=True, pixels = 3):
+def get_image_neighbors(images, is_left_right=True, pixels=3):
     tiles = np.sqrt(images.shape[0])
 
     tile_pairs = tile_neighbors_lr[tiles] if is_left_right else tile_neighbors_ud[tiles]
     non_neighbor_pairs = non_neighbor_tiles_lr[tiles] if is_left_right else non_neighbor_tiles_ud[tiles]
     non_neighbor_pairs = shuffle(non_neighbor_pairs)
-    #non_neighbor_pairs = shuffle(non_neighbor_pairs)
+    # non_neighbor_pairs = shuffle(non_neighbor_pairs)
 
     returned_images = []
     labels = []
@@ -153,7 +156,6 @@ def split_train_test_val(path, train_size=0.7, test_size=0.15, seed=42):
 
 @threadsafe_generator
 def image_gen(paths, labels, randomize=False):
-
     if randomize:
         paths, labels = shuffle(paths, labels)
 
@@ -179,7 +181,6 @@ def image_gen(paths, labels, randomize=False):
 
 @threadsafe_generator
 def neighbors_gen(paths, pixels, is_left_right=True, is_img=True, randomize=False):
-
     if randomize:
         paths = shuffle(paths)
 
@@ -191,7 +192,6 @@ def neighbors_gen(paths, pixels, is_left_right=True, is_img=True, randomize=Fals
 
 
 def centers_gen(paths, is_img=True, randomize=False):
-
     if randomize:
         paths = shuffle(paths)
 
@@ -203,6 +203,23 @@ def centers_gen(paths, is_img=True, randomize=False):
             labels1 = np.asarray([a for a, b in labels])
             labels2 = np.asarray([b for a, b in labels])
             yield images, [labels1, labels2]
+
+
+class AverageMeter(object):
+    """Computes and stores the average and current value"""
+
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self.avg = 0
+        self.sum = 0
+        self.count = 0
+
+    def update(self, val, n=1):
+        self.sum += val * n
+        self.count += n
+        self.avg = self.sum / self.count
 
 
 if __name__ == '__main__':
