@@ -7,7 +7,7 @@ from densenet import DenseNet
 BATCH_SIZE = 128
 EPOCHS = 15
 INITIAL_LR = 0.1
-MODEL_PATH = '{}_{}_neighbors_classifier.h5' # TODO
+MODEL_PATH = '{}_{}_neighbors_classifier.h5'
 
 
 def lr_rate(epoch):
@@ -50,7 +50,7 @@ class NeighborsClassifier:
         if not load_model:
             self.model = self.build_model()
         else:
-            self.model = keras.models.load_model(self.model_path)
+            self.model = keras.models.load_model(self.model_path, custom_objects=SemiGlobalAvgPooling)
 
     @staticmethod
     def build_densenet():
